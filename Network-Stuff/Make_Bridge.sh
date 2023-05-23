@@ -24,7 +24,7 @@ set -e
 
 
 # -------- Show Connections with nmcli -----------------------------------------------------
-function Show()
+SHOW()
 {
 	read -p "Do You Need To See What Connections There Are?[y/n] " answer1
 	answer1=${answer:-"y"}
@@ -35,7 +35,8 @@ function Show()
 }
 
 # ------ Choosing Ethernet to be slave for bridge --------------------------------------------
-function ETH(){
+ETH()
+{
 	read -p "Which ethernet you need to be slave for $BR_NAME : " BR_INT
 	while [[ $BR_INT = "" ]];do
 		echo "You have to choose an etherntet connection"
@@ -44,7 +45,8 @@ function ETH(){
 }
 
 # ------- Provide DNS -----------------------
-function DNS(){
+DNS()
+{
   read -p "Provide First DNS[8.8.8.8]:" DNS1
   DNS1=${DNS1:-"8.8.8.8"}
   read -p "Provide Second DNS[4.2.2.4]:" DNS2
@@ -52,14 +54,16 @@ function DNS(){
 }
 
 # -------- bridge name ----------------------
-function Bridge(){
+Bridge()
+{
   read -p "Name for bridge [br10]: " BR_NAME
   BR_NAME=${BR_NAME:-"br10"}
 
 }
 
 #----- provide GateWay -------------------------
-function Gateway(){
+Gateway()
+{
   read -p "GateWay For $BR_NAME: " GW
 	while [[ $GW = "" ]];do
 		echo "Please Provide a gateway for $BR_NAME: "
@@ -68,7 +72,8 @@ function Gateway(){
 }
 
 #---- Provide ip for bridge --------------------
-function Subnet_IP(){
+Subnet_IP()
+{
   echo "Subnet IP like '192.168.1.105/24'"
   read -p "Subnet IP For $BR_NAME: " SUBNET_IP
   while [[ $SUBNET_IP = "" ]];do
@@ -79,12 +84,14 @@ function Subnet_IP(){
 }
 
 #--------- Dhcp for bridge ---------------
-function Auto(){
+Auto()
+{
 	sudo nmcli connection modify ${BR_NAME} ipv4.method auto
 }
 
 # ------ Manual ip for bridge ------------
-function Manual(){
+Manual()
+{
 	Subnet_IP
 	Gateway
 	sudo nmcli connection modify ${BR_NAME} ipv4.addresses ${SUBNET_IP} ipv4.method auto
@@ -92,7 +99,8 @@ function Manual(){
 
 }
 #--------- Method for ipv4 (dhcp or manual) ----
-function Method(){
+Method()
+{
 	read -p "Set $BR_NAME to get ip from dhcp?[Y/n] " answer2
 	answer2=${answer2:-"Y"}
 	if [[ $answer2 = "Y" ]];then
@@ -104,23 +112,28 @@ function Method(){
 
 
 ### ------ Main Function -----------------------
-function main(){
-	Show
+Main()
+{
+	SHOW
 	ETH 
 	DNS
 	Bridge
+
 	#-------- main nmcli Commands ----------------
 	sudo nmcli connection add type bridge autoconnect yes con-name ${BR_NAME} ifname ${BR_NAME}
+
 	Method
+	
 	sudo nmcli connection modify ${BR_NAME} ipv4.dns ${DNS1} +ipv4.dns ${DNS2}
-    sudo nmcli connection delete ${BR_INT}
-    sudo nmcli connection add type bridge-slave autoconnect yes con-name ${BR_INT} ifname ${BR_INT} master ${BR_NAME}
-    sudo nmcli connection up $BR_NAME 
-  # For getting ip from dhcp it needs to connection reload 
+	sudo nmcli connection delete ${BR_INT}
+	sudo nmcli connection add type bridge-slave autoconnect yes con-name ${BR_INT} ifname ${BR_INT} master ${BR_NAME}
+	sudo nmcli connection up $BR_NAME
+
+    # For getting ip from dhcp it needs to connection reload 
 	echo "---------- Reloading Connections -------"
 	sleep 5
-  sudo nmcli connection reload
+	sudo nmcli connection reload
 	sudo nmcli connection show
 }
 
-main 
+Main 
