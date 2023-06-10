@@ -1,0 +1,7 @@
+[Unit]
+Description=RAID setup health check
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/raid-check
+
